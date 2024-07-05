@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
+import 'package:flutter_camera/api/gemini.dart';
 import 'package:flutter_camera/bl/image_utils.dart' as img_utils;
 
 class ResolutionStats {
@@ -27,14 +29,18 @@ class CameraWidget extends StatefulWidget {
 }
 
 class CameraWidgetState extends State<CameraWidget> {
-  CameraController? _controller;
+  CameraController? _camerController;
   final List<Uint8List> _capturedBytes = [];
   final List<Uint8List> _capturedImages = [];
+
+  TextEditingController _promptTextController = TextEditingController();
+
   Timer? _timer;
 
-  CaptureState _captureState = CaptureState.LOADING;
+  CaptureState _captureState = CaptureState.PAUSE;
 
   String status = "initializing";
+  String _aiResponse = "";
 
   @override
   void initState() {
@@ -45,13 +51,13 @@ class CameraWidgetState extends State<CameraWidget> {
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
     final camera = cameras.first;
-    _controller = CameraController(
+    _camerController = CameraController(
       camera,
       ResolutionPreset.high,
       enableAudio: false,
     );
 
-    await _controller?.initialize();
+    await _camerController?.initialize();
 
     startCapture();
   }
@@ -65,12 +71,12 @@ class CameraWidgetState extends State<CameraWidget> {
   }
 
   void startCapture() {
-    setCaptureState(CaptureState.CAPTURE);
+    setCaptureState(CaptureState.PAUSE);
 
     // Start capturing images every 500ms
     _timer = Timer.periodic(const Duration(milliseconds: 2000), (timer) async {
       if (_captureState == CaptureState.CAPTURE) {
-        final bytes = await _captureImage(_controller!);
+        final bytes = await _captureImage(_camerController!);
         _addCapturedImage(bytes);
       }
     });
@@ -121,9 +127,26 @@ class CameraWidgetState extends State<CameraWidget> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _camerController?.dispose();
     _timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _sendGeminiMsg(String prompt) async {
+    String response =
+        await askGemini(prompt); // Replace with your async function
+    setState(() {
+      _aiResponse = response;
+    });
+  }
+
+  Future<void> _sendGeminiImg(Uint8List bytes, String prompt) async {
+    final jpegBytes = await img_utils.convertRawImageToJpeg(bytes);
+    String response = await sendGeminiImage(jpegBytes,
+        prompt: prompt); // Replace with your async function
+    setState(() {
+      _aiResponse = response;
+    });
   }
 
   @override
@@ -133,24 +156,50 @@ class CameraWidgetState extends State<CameraWidget> {
     return Column(
       children: [
         Text(_captureState.toString()),
+        Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: TextField(
+                  controller: _promptTextController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter message',
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: () {
+                  _sendGeminiMsg(_promptTextController.text);
+                },
+              ),
+            ],
+          ),
+        ),
+        Text("AI Response: $_aiResponse"),
         MaterialButton(
             child: Text(isPaused ? "Resume" : "Pause"),
             onPressed: () {
               setCaptureState(
                   isPaused ? CaptureState.CAPTURE : CaptureState.PAUSE);
             }),
-        if (_controller != null && _controller!.value.isInitialized)
-          AspectRatio(
-            aspectRatio: _controller!.value.aspectRatio,
-            child: CameraPreview(_controller!),
-          ),
+        if (_camerController != null && _camerController!.value.isInitialized)
+          Container(
+              width: 200, height: 200, child: CameraPreview(_camerController!)),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: _capturedBytes.map((bytes) {
-            return Container(
-              width: 100,
-              height: 100,
-              child: Image.memory(bytes, fit: BoxFit.cover),
+          children: _capturedBytes.asMap().entries.map((entry) {
+            int index = entry.key;
+            Uint8List bytes = entry.value;
+
+            return GestureDetector(
+              onTap: () => _sendGeminiImg(bytes, _promptTextController.text),
+              child: Container(
+                width: 100,
+                height: 100,
+                child: Image.memory(bytes, fit: BoxFit.cover),
+              ),
             );
           }).toList(),
         ),

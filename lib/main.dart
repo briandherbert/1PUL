@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_camera/ui/camera_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  runApp(const MainApp());
+
+void main() async {
+  await dotenv.load(fileName: ".env");
+  runApp(
+    // To install Riverpod, we need to add this widget above everything else.
+    // This should not be inside "MyApp" but as direct parameter to "runApp".
+    const ProviderScope(
+      child: MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {

@@ -1,7 +1,20 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
+
+
+Future<Uint8List> convertRawImageToJpeg(Uint8List imgBytes) async {
+  // Decode the raw image bytes
+  img.Image? image = img.decodeImage(imgBytes);
+  if (image == null) {
+    throw Exception('Unable to decode image');
+  }
+
+  // Encode the image to JPEG
+  Uint8List jpegBytes = Uint8List.fromList(img.encodeJpg(image));
+  return jpegBytes;
+}
 
 Future<ui.Image> decodeImage(Uint8List imgBytes) async {
   final Completer<ui.Image> completer = Completer();
