@@ -74,7 +74,7 @@ class CameraWidgetState extends State<CameraWidget> {
     setCaptureState(CaptureState.PAUSE);
 
     // Start capturing images every 500ms
-    _timer = Timer.periodic(const Duration(milliseconds: 2000), (timer) async {
+    _timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) async {
       if (_captureState == CaptureState.CAPTURE) {
         final bytes = await _captureImage(_camerController!);
         _addCapturedImage(bytes);
@@ -186,7 +186,7 @@ class CameraWidgetState extends State<CameraWidget> {
             }),
         if (_camerController != null && _camerController!.value.isInitialized)
           Container(
-              width: 200, height: 200, child: CameraPreview(_camerController!)),
+              width: 300, height: 300, child: CameraPreview(_camerController!)),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: _capturedBytes.asMap().entries.map((entry) {

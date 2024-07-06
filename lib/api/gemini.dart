@@ -57,7 +57,6 @@ Future<String> askGemini(String prompt) async {
   return response.text!;
 }
 
-
 void geminiCompareImages() async {
   // Access your API key as an environment variable (see "Set up your API key" above)
   final apiKey = Platform.environment['API_KEY'];
