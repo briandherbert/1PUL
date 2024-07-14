@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera/api/google_auth.dart';
 import 'package:flutter_camera/api/gsheets_inventory.dart';
 import 'package:flutter_camera/model/inventory_item.dart';
 
-class TestInventoryWidget extends StatefulWidget {
+import 'package:googleapis/drive/v3.dart' as drive;
 
-  const TestInventoryWidget({super.key, 
+class TestInventoryWidget extends StatefulWidget {
+  const TestInventoryWidget({
+    super.key,
   });
 
   @override
@@ -40,6 +43,28 @@ class _TestInventoryWidgetState extends State<TestInventoryWidget> {
     setState(() {
       _items = items;
     });
+  }
+
+  Future<drive.File?> createSpreadsheet() async {
+    final client = await getAuthenticatedHttpClient();
+    if (client == null) {
+      print("Failed to get authenticated client.");
+      return null;
+    }
+
+    final driveApi = drive.DriveApi(client);
+    final newFile = drive.File();
+    newFile.name = "Test Organizer App";
+    newFile.mimeType = "application/vnd.google-apps.spreadsheet";
+
+    try {
+      final createdFile = await driveApi.files.create(newFile);
+      print('made file ${createdFile} with id ${createdFile.driveId}');
+      return createdFile;
+    } catch (e) {
+      print("Error creating spreadsheet: $e");
+      return null;
+    }
   }
 
   Future<void> _addItem() async {
@@ -108,7 +133,7 @@ class _TestInventoryWidgetState extends State<TestInventoryWidget> {
                   TextFormField(
                     controller: _locationController,
                     decoration: InputDecoration(labelText: 'Location'),
-                  ),                  
+                  ),
                   TextFormField(
                     controller: _imageController,
                     decoration: InputDecoration(labelText: 'Image URL'),
@@ -132,6 +157,10 @@ class _TestInventoryWidgetState extends State<TestInventoryWidget> {
                     onPressed: _addItem,
                     child: Text('Add Item'),
                   ),
+                  ElevatedButton(
+                    onPressed: createSpreadsheet,
+                    child: Text('Auth w Google'),
+                  ),
                 ],
               ),
             ),
@@ -145,7 +174,8 @@ class _TestInventoryWidgetState extends State<TestInventoryWidget> {
                         final item = _items[index];
                         return ListTile(
                           title: Text(item.humanDesc),
-                          subtitle: Text('ID: ${item.itemId}, Quantity: ${item.quantity}'),
+                          subtitle: Text(
+                              'ID: ${item.itemId}, Quantity: ${item.quantity}'),
                         );
                       },
                     ),

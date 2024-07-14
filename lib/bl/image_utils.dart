@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:image/image.dart' as img;
 
-
 Future<Uint8List> convertRawImageToJpeg(Uint8List imgBytes) async {
   // Decode the raw image bytes
   img.Image? image = img.decodeImage(imgBytes);
@@ -33,8 +32,9 @@ Future<Uint8List> getPixelData(ui.Image image) async {
   return byteData.buffer.asUint8List();
 }
 
-bool detectMovement(Uint8List pixels1, Uint8List pixels2,
-    {int threshold = 50, double percentage = 0.1, int step = 10}) {
+bool areImagesDifferent(Uint8List pixels1, Uint8List pixels2,
+    {int threshold = 50, double percentage = .15, int step = 10}) {
+
   int minLength =
       pixels1.length < pixels2.length ? pixels1.length : pixels2.length;
 
