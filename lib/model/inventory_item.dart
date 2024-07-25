@@ -20,8 +20,8 @@ class InventoryItem {
   Map<String, dynamic> toMap() {
     return {
       'item_id': itemId,
-      'ai_desc': aiDesc,
-      'human_desc': humanDesc,
+      'ai_description': aiDesc,
+      'human_description': humanDesc,
       'date': date,
       'location': location,
       'image': image,
@@ -32,8 +32,8 @@ class InventoryItem {
   static InventoryItem fromMap(Map<String, dynamic> map) {
     return InventoryItem(
       itemId: map['item_id'],
-      aiDesc: map['ai_desc'],
-      humanDesc: map['human_desc'],
+      aiDesc: map['ai_description'],
+      humanDesc: map['human_description'],
       date: map['date'],
       location: map['location'],
       image: map['image'],

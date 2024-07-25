@@ -58,16 +58,36 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
   }
 
   Future<PhotoItem> _processPhoto(Uint8List rawBytes) async {
-    // Simulate photo processing (replace with your actual processing logic)
-    Image img = await img_utils.decodeImage(rawBytes);
-    Uint8List argbImg = await img_utils.getPixelData(img);
+    final Stopwatch stopwatch = Stopwatch();
 
+    stopwatch.start();
+    Image img = await img_utils.decodeImage(rawBytes);
+    stopwatch.stop();
+    print('Time to decode image: ${stopwatch.elapsedMilliseconds} ms');
+
+    stopwatch.reset();
+    stopwatch.start();
+    Uint8List argbImg = await img_utils.getPixelData(img);
+    stopwatch.stop();
+    print('Time to get pixel data: ${stopwatch.elapsedMilliseconds} ms');
+
+    stopwatch.reset();
+    stopwatch.start();
     PhotoItem photoItem = PhotoItem(rawBytes, argbImg);
+    stopwatch.stop();
+    print('Time to create PhotoItem: ${stopwatch.elapsedMilliseconds} ms');
 
     PhotoState photoState = PhotoState.BASELINE;
 
+    stopwatch.reset();
+    stopwatch.start();
     if (_isBaselineImage(photoItem)) {
+      // Optionally time this section if necessary
     } else if (_isDifferentThanPrev(photoItem)) {
+      stopwatch.stop();
+      print(
+          'Time to check if different than previous: ${stopwatch.elapsedMilliseconds} ms');
+
       _unchangedStreak = 0;
       photoState = PhotoState.DIFF;
 
@@ -75,20 +95,35 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
           FOUND_ITEM_COOLDOWN) {
         photoState = PhotoState.POST_INVENTORY_NOISE;
       } else {
-        // Call Gemini, see if we have an image
+        stopwatch.reset();
+        stopwatch.start();
         final jpegBytes = await photoItem.getJpegBytes();
+        stopwatch.stop();
+        print(
+            'Time to get jpeg bytes: ${stopwatch.elapsedMilliseconds} ms');
+        stopwatch.reset();
+        stopwatch.start();
+
         final geminiDesc = await describeHeldObject(jpegBytes);
         photoItem.geminiDesc = geminiDesc;
+        stopwatch.stop();
+        print(
+            'Time to call Gemini and describe object: ${stopwatch.elapsedMilliseconds} ms');
+
         photoState = geminiDesc == null
             ? PhotoState.NOT_INVENTORY
             : PhotoState.INVENTORY;
 
         if (photoState == PhotoState.INVENTORY) {
           print("got an item");
-          GCSUploader.uploadImageEventually(photoItem);
+          //GCSUploader.uploadImageEventually(photoItem);
         }
       }
     } else {
+      stopwatch.stop();
+      print(
+          'Time to check if same as previous: ${stopwatch.elapsedMilliseconds} ms');
+
       _unchangedStreak += 1;
       if (_unchangedStreak >= BASELINE_STREAK_LENGTH) {
         photoState = PhotoState.BASELINE;

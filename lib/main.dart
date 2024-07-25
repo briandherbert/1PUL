@@ -25,8 +25,8 @@ class MainApp extends StatelessWidget {
     return const MaterialApp(
       home: Scaffold(
         body: Center(
-          child: CameraWidget2(),
-          //child: TestInventoryWidget()
+          //child: CameraWidget2(),
+          child: TestInventoryWidget()
         ),
       ),
     );

@@ -5,7 +5,8 @@ import 'package:gsheets/gsheets.dart';
 
 class GoogleSheetsInventory {
   late GSheets _gsheets;
-  Worksheet? _worksheet;
+  Worksheet? _inventorySheet;
+  Worksheet? _locationsSheet;
 
   GoogleSheetsInventory() {
     _gsheets = GSheets(_decodeCredentials(dotenv.env['SERVICE_ACCT_CREDS']!));
@@ -18,21 +19,35 @@ class GoogleSheetsInventory {
 
   Future<void> init() async {
     final ss = await _gsheets.spreadsheet(dotenv.env['GSHEET_ID']!);
-    _worksheet = ss.worksheetByTitle('inventory');
+    _inventorySheet = ss.worksheetByTitle('inventory');
+    _locationsSheet = ss.worksheetByTitle('locations');
   }
 
-  Future<List<InventoryItem>> readItems() async {
-    if (_worksheet == null) {
+  Future<List<String>> getLocations() async {
+    if (_inventorySheet == null) {
       throw Exception("Worksheet is not initialized.");
     }
-    final rows = await _worksheet!.values.map.allRows();
+    final locations = await _locationsSheet!.values.column(1);
+    print('got location rows ${locations}');
+    return locations;
+  }  
+
+  Future<List<InventoryItem>> readItems() async {
+    if (_inventorySheet == null) {
+      throw Exception("Worksheet is not initialized.");
+    }
+
+    //await getLocations();
+    final rows = await _inventorySheet!.values.map.allRows();
     if (rows == null) return [];
+
+    print('got sheets rows ${rows}');
 
     return rows.map((row) {
       return InventoryItem(
         itemId: row['item_id'] ?? '',
-        aiDesc: row['ai_desc'] ?? '',
-        humanDesc: row['human_desc'] ?? '',
+        aiDesc: row['ai_description'] ?? '',
+        humanDesc: row['human_description'] ?? '',
         date: row['date'] ?? '',
         location: row['location'] ?? '',
         image: row['image'] ?? '',
@@ -42,21 +57,21 @@ class GoogleSheetsInventory {
   }
 
   Future<void> addItem(InventoryItem item) async {
-    if (_worksheet == null) {
+    if (_inventorySheet == null) {
       throw Exception("Worksheet is not initialized.");
     }
-    await _worksheet!.values.appendRow(item.toMap().values.toList());
+    await _inventorySheet!.values.appendRow(item.toMap().values.toList());
   }
 
   Future<void> updateItem(String itemId, InventoryItem newItem) async {
-    if (_worksheet == null) {
+    if (_inventorySheet == null) {
       throw Exception("Worksheet is not initialized.");
     }
-    final rows = await _worksheet!.values.map.allRows();
+    final rows = await _inventorySheet!.values.map.allRows();
     if (rows != null) {
       for (var i = 0; i < rows.length; i++) {
         if (rows[i]['item_id'] == itemId) {
-          await _worksheet!.values
+          await _inventorySheet!.values
               .insertRow(i + 1, newItem.toMap().values.toList());
           return;
         }

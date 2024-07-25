@@ -13,7 +13,6 @@ import 'package:flutter_camera/model/photo_item.dart';
 import 'package:flutter_camera/provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../provider.dart';
 
 enum CaptureState { LOADING, CAPTURE, PAUSE, DIFF, AWAITING_BASELINE_RETURN }
 
@@ -36,13 +35,14 @@ class CameraWidget2 extends ConsumerStatefulWidget {
 class CameraWidgetState2 extends ConsumerState<CameraWidget2> {
   CameraController? _camerController;
 
+  static const FRAME_INTERVAL_MS = 1000;
+
+
   final BASELINE_IMAGE_REQ_FRAMES = 4;
 
   Timer? _timer;
 
   CaptureState _captureState = CaptureState.PAUSE;
-
-  static const FRAME_INTERVAL_MS = 2000;
 
   String status = "initializing";
   String _aiResponse = "";
@@ -117,50 +117,96 @@ class CameraWidgetState2 extends ConsumerState<CameraWidget2> {
     super.dispose();
   }
 
+  PhotoItem? _lastInventoryItem;
+
   @override
   Widget build(BuildContext context) {
     final isPaused = _captureState == CaptureState.PAUSE;
 
     final processedPhotos = ref.watch(rawPhotoProcessorProvider);
 
+    if (processedPhotos.isNotEmpty &&
+        processedPhotos.first.photoState == PhotoState.INVENTORY) {
+      setState(() {
+        _lastInventoryItem = processedPhotos.first;
+      });
+    }
     return Column(
       children: [
         Text(_captureState.toString()),
         Text("AI Response: $_aiResponse"),
         MaterialButton(
-            child: Text(isPaused ? "Resume" : "Pause"),
-            onPressed: () {
-              setCaptureState(
-                  isPaused ? CaptureState.CAPTURE : CaptureState.PAUSE);
-            }),
+          child: Text(isPaused ? "Resume" : "Pause"),
+          onPressed: () {
+            setCaptureState(
+                isPaused ? CaptureState.CAPTURE : CaptureState.PAUSE);
+          },
+        ),
         if (_camerController != null && _camerController!.value.isInitialized)
-          Container(
-              width: 300, height: 300, child: CameraPreview(_camerController!)),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: processedPhotos.take(3).map((entry) {
-            Uint8List bytes = entry.capturedBytes;
-
-            return GestureDetector(
-              onTap: () async {
-                print("tapped image, uploading");
-                final url = GCSUploader.uploadImage(
-                    await img_utils.convertRawImageToJpeg(bytes));
-
-                print("done upload");
-              },
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                      color: photoStateColors[entry.photoState]!,
-                      width: 4), // Set your desired border color and width
+          Expanded(
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 300,
+                  height: 300,
+                  child: CameraPreview(_camerController!),
                 ),
-                child: Image.memory(bytes, fit: BoxFit.cover),
-              ),
-            );
-          }).toList(),
+                _lastInventoryItem == null
+                    ? Container(
+                        color: Colors.grey,
+                      )
+                    : Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Image.memory(
+                                _lastInventoryItem!.capturedBytes,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                _lastInventoryItem!.geminiDesc!,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ],
+            ),
+          ),
+        SizedBox(height: 10), // Add some spacing
+        Container(
+          height: 100, // Fixed height for the bottom row
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: processedPhotos.take(3).map((entry) {
+              Uint8List bytes = entry.capturedBytes;
+
+              return GestureDetector(
+                onTap: () async {
+                  print("tapped image, uploading");
+                  final url = GCSUploader.uploadImage(
+                      await img_utils.convertRawImageToJpeg(bytes));
+                  print("done upload");
+                },
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: photoStateColors[entry.photoState]!,
+                      width: 4,
+                    ),
+                  ),
+                  child: Image.memory(bytes, fit: BoxFit.cover),
+                ),
+              );
+            }).toList(),
+          ),
         ),
       ],
     );
