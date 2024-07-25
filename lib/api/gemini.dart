@@ -7,8 +7,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image/image.dart' as img;
 
 
-
-
 Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) async {
   debugPrint('sending Gemini image w prompt $prompt');
   // Access your API key as an environment variable
@@ -37,6 +35,18 @@ Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) asy
   return response.text!;
 }
 
+  Future<String?> describeHeldObject(Uint8List jpegBytes) async {
+    final prompt =
+        "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, and the object is visible enough to describe, describe the object, otherwise, output NONE.";
+    final result = await sendGeminiImage(jpegBytes, prompt: prompt);
+    print("Gemini response $result");
+
+    if (!result.toLowerCase().contains("none") || result.length > 10) {
+      return result;
+    }
+
+    return null;
+  }
 
 
 Future<String> askGemini(String prompt) async {

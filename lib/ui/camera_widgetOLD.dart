@@ -5,8 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
+import 'package:flutter_camera/api/gcs.dart';
 import 'package:flutter_camera/api/gemini.dart';
+import 'package:flutter_camera/api/gsheets_inventory.dart';
 import 'package:flutter_camera/bl/image_utils.dart' as img_utils;
+import 'package:flutter_camera/model/photo_item.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ResolutionStats {
   int captureTime = -1;
@@ -46,18 +50,24 @@ final Map<PhotoState, MaterialColor> photoStateColors = {
 };
 
 
-class CameraWidget extends StatefulWidget {
+class CameraWidget extends ConsumerStatefulWidget {
   const CameraWidget({super.key});
 
   @override
   CameraWidgetState createState() => CameraWidgetState();
 }
 
-class CameraWidgetState extends State<CameraWidget> {
+///
+/// Tracks 
+///
+class CameraWidgetState extends ConsumerState<CameraWidget> {
   CameraController? _camerController;
+
   final List<Uint8List> _capturedBytes = [];
   final List<Uint8List> _capturedImages = [];
   final List<PhotoState> _photoStates = [];
+
+  final List<PhotoItem> _photoQueue = [];
 
   final List<Uint8List> _baselineImages = [];
   final BASELINE_IMAGE_REQ_FRAMES = 4;
@@ -77,10 +87,14 @@ class CameraWidgetState extends State<CameraWidget> {
   String status = "initializing";
   String _aiResponse = "";
 
+  final GoogleSheetsInventory _inventory = GoogleSheetsInventory();
+
+
   @override
   void initState() {
     super.initState();
     _initializeCamera();
+    _inventory.init();
   }
 
   Future<void> _initializeCamera() async {
@@ -199,12 +213,13 @@ class CameraWidgetState extends State<CameraWidget> {
 
   Future<String> _describeHeldObject(Uint8List bytes, int imageIdx) async {
     final prompt = "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, describe the object, otherwise, output NONE.";
-    final result = await _sendGeminiImg(bytes, prompt);
+    final jpegBytes = await img_utils.convertRawImageToJpeg(bytes);
+    final result = await _sendGeminiImg(jpegBytes, prompt);
     print("Gemini response $result");
 
     if (!result.toLowerCase().contains("none") || result.length > 10) {
       _aiResponse = result;
-      setCaptureState(CaptureState.PAUSE);
+      //setCaptureState(CaptureState.PAUSE);
     }
 
     return result;
@@ -225,8 +240,7 @@ class CameraWidgetState extends State<CameraWidget> {
     });
   }
 
-  Future<String> _sendGeminiImg(Uint8List bytes, String prompt) async {
-    final jpegBytes = await img_utils.convertRawImageToJpeg(bytes);
+  Future<String> _sendGeminiImg(Uint8List jpegBytes, String prompt) async {
     String response = await sendGeminiImage(jpegBytes,
         prompt: prompt); // Replace with your async function
     return response;
@@ -278,10 +292,15 @@ class CameraWidgetState extends State<CameraWidget> {
 
             return GestureDetector(
               onTap: () async { 
-                final response = await _sendGeminiImg(bytes, _promptTextController.text);
-                setState(() {
-                  _aiResponse = response;
-                });
+                print("tapped image, uploading");
+                final url = GCSUploader.uploadImage(await img_utils.convertRawImageToJpeg(bytes));
+
+                print("done upload");
+                
+                // final response = await _sendGeminiImg(await img_utils.convertRawImageToJpeg(bytes), _promptTextController.text);
+                // setState(() {
+                //   _aiResponse = response;
+                // });
                 },
               child: Container(
                 width: 100,
