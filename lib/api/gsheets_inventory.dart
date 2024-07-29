@@ -27,7 +27,7 @@ class GoogleSheetsInventory {
     if (_inventorySheet == null) {
       throw Exception("Worksheet is not initialized.");
     }
-    final locations = await _locationsSheet!.values.column(1);
+    final locations = await _locationsSheet!.values.column(1, fromRow: 2);
     print('got location rows ${locations}');
     return locations;
   }  

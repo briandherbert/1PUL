@@ -1,3 +1,5 @@
+import 'package:flutter_camera/model/photo_item.dart';
+
 class InventoryItem {
   final String itemId;
   final String aiDesc;
@@ -38,6 +40,18 @@ class InventoryItem {
       location: map['location'],
       image: map['image'],
       quantity: map['quantity'],
+    );
+  }
+
+  static fromPhotoItem(PhotoItem pi) {
+    return InventoryItem(
+      itemId: pi.formattedTimestamp,
+      aiDesc: pi.geminiDesc?? "none",
+      humanDesc: pi.humanDesc?? "none",
+      date: pi.formattedTimestamp,
+      location: pi.location,
+      image: '=Image("${pi.gcsUrl}")',
+      quantity: 1,
     );
   }
 }

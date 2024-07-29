@@ -39,8 +39,15 @@ Future<Uint8List> getPixelData(ui.Image image) async {
   return byteData.buffer.asUint8List();
 }
 
-bool areImagesDifferent(Uint8List pixels1, Uint8List pixels2,
+bool areImagesDifferent(Uint8List? pixels1, Uint8List? pixels2,
     {int threshold = 50, double percentage = .15, int step = 10}) {
+
+  if (pixels1 == null) {
+    return pixels2 != null;
+  } else if (pixels2 == null) {
+    return true;
+  }
+
   int minLength =
       pixels1.length < pixels2.length ? pixels1.length : pixels2.length;
 

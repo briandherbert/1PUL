@@ -1,8 +1,11 @@
-// flutter pub run build_runner watch.
+// flutter pub run build_runner watch
 
 import 'dart:ui';
 
 import 'package:flutter_camera/api/gcs.dart';
+import 'package:flutter_camera/api/gsheets_inventory.dart';
+import 'package:flutter_camera/model/camera_feed_status.dart';
+import 'package:flutter_camera/providers/location_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'dart:typed_data';
 import 'package:flutter_camera/model/photo_item.dart';
@@ -10,11 +13,22 @@ import 'package:flutter_camera/bl/image_utils.dart' as img_utils;
 import 'dart:ui';
 import 'package:flutter_camera/api/gemini.dart';
 
-part 'provider.g.dart';
+part 'photo_processor_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+class CameraFeedState extends _$CameraFeedState {
+  @override
+  CameraFeedStatus build() => CameraFeedStatus.LOADING;
+
+  void setStatus(CameraFeedStatus status) {
+    print('Set cam feed ${status.toString()}');
+    state = status;
+  }
+}
 
 @Riverpod(keepAlive: true)
 class RawPhotoProcessor extends _$RawPhotoProcessor {
-  final List<Uint8List> _rawPhotoQueue = [];
+  final List<PhotoItem> _rawPhotoQueue = [];
   final List<PhotoItem> _processedPhotos = [];
 
   final List<PhotoItem> _baselineImages = [];
@@ -33,10 +47,11 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
     return _processedPhotos;
   }
 
-  void addRawPhoto(Uint8List rawPhoto) {
+  void addRawPhoto(Uint8List rawPhoto, String location) {
     print("Provider: Add raw photo, queue size ${_rawPhotoQueue.length}");
+    final photoItem = PhotoItem(rawPhoto, location);
 
-    _rawPhotoQueue.add(rawPhoto);
+    _rawPhotoQueue.add(photoItem);
     _processNextPhoto();
   }
 
@@ -49,7 +64,8 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
       _processedPhotos.insert(0, processedPhoto);
       state = [..._processedPhotos];
     } catch (e, st) {
-      state = [];
+      print("Error processing photo");
+      //state = [];
     } finally {
       _isProcessing = false;
       // Check if there are more photos to process
@@ -57,23 +73,23 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
     }
   }
 
-  Future<PhotoItem> _processPhoto(Uint8List rawBytes) async {
+  Future<PhotoItem> _processPhoto(PhotoItem photoItem) async {
     final Stopwatch stopwatch = Stopwatch();
 
     stopwatch.start();
-    Image img = await img_utils.decodeImage(rawBytes);
+    Image img = await img_utils.decodeImage(photoItem.capturedBytes);
     stopwatch.stop();
     print('Time to decode image: ${stopwatch.elapsedMilliseconds} ms');
 
     stopwatch.reset();
     stopwatch.start();
-    Uint8List argbImg = await img_utils.getPixelData(img);
+    photoItem.argbBytes = await img_utils.getPixelData(img);
     stopwatch.stop();
     print('Time to get pixel data: ${stopwatch.elapsedMilliseconds} ms');
 
     stopwatch.reset();
     stopwatch.start();
-    PhotoItem photoItem = PhotoItem(rawBytes, argbImg);
+    //PhotoItem photoItem = PhotoItem(rawBytes, argbImg);
     stopwatch.stop();
     print('Time to create PhotoItem: ${stopwatch.elapsedMilliseconds} ms');
 
@@ -116,7 +132,8 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
 
         if (photoState == PhotoState.INVENTORY) {
           print("got an item");
-          //GCSUploader.uploadImageEventually(photoItem);
+          GCSUploader.uploadImageEventually(photoItem);
+          ref.read(inventoryItemDetectedProvider.notifier).onAutomationFieldsComplete(photoItem);
         }
       }
     } else {

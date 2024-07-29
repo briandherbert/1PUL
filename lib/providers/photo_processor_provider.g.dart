@@ -1,12 +1,28 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'provider.dart';
+part of 'photo_processor_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$rawPhotoProcessorHash() => r'c171f590198f9a38dae1f0ed0adafe4d1236ed19';
+String _$cameraFeedStateHash() => r'ed4ee7e913f5c2b0a9d08c46d280d82bd9f8c24b';
+
+/// See also [CameraFeedState].
+@ProviderFor(CameraFeedState)
+final cameraFeedStateProvider =
+    NotifierProvider<CameraFeedState, CameraFeedStatus>.internal(
+  CameraFeedState.new,
+  name: r'cameraFeedStateProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$cameraFeedStateHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$CameraFeedState = Notifier<CameraFeedStatus>;
+String _$rawPhotoProcessorHash() => r'3edb4bb6ceef3fe84551c722ce81a49be46a1bc4';
 
 /// See also [RawPhotoProcessor].
 @ProviderFor(RawPhotoProcessor)

@@ -7,9 +7,12 @@ enum PhotoState { NORMAL, BASELINE, DIFF, INVENTORY, NOT_INVENTORY, POST_INVENTO
 
 class PhotoItem {
   final Uint8List capturedBytes;
-  final Uint8List argbBytes;
+  final String location;
+
+  Uint8List? argbBytes;
   Uint8List? _jpegBytes;
   String? geminiDesc;
+  String? humanDesc;
   String? gcsUrl;
   final DateTime timestamp;  // New field for timestamp
 
@@ -17,10 +20,9 @@ class PhotoItem {
 
   PhotoItem(
     this.capturedBytes, 
-    this.argbBytes, {
-    PhotoState photoState = PhotoState.BASELINE,
+    this.location, {
+    this.photoState = PhotoState.BASELINE,
   }) : 
-    photoState = photoState,
     timestamp = DateTime.now();
 
   // Getter for the timestamp
