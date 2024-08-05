@@ -27,26 +27,23 @@ class PastFramesWidgetState extends ConsumerState<PastFramesWidget> {
   Widget build(BuildContext context) {
     final processedPhotos = ref.watch(rawPhotoProcessorProvider);
 
-    return Container(
-      height: 200,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: processedPhotos.take(3).map((entry) {
-          Uint8List bytes = entry.capturedBytes;
-
-          return Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: photoStateColors[entry.photoState]!,
-                width: 4,
-              ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: processedPhotos.take(3).map((entry) {
+        Uint8List bytes = entry.capturedBytes;
+  
+        return Container(
+          width: 200,
+          height: 200,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: photoStateColors[entry.photoState]!,
+              width: 4,
             ),
-            child: Image.memory(bytes, fit: BoxFit.cover),
-          );
-        }).toList(),
-      ),
+          ),
+          child: Image.memory(bytes, fit: BoxFit.cover),
+        );
+      }).toList(),
     );
   }
 }

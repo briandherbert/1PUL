@@ -2,10 +2,11 @@
 
 import 'dart:ui';
 
+import 'package:camera/camera.dart';
 import 'package:flutter_camera/api/gcs.dart';
 import 'package:flutter_camera/api/gsheets_inventory.dart';
 import 'package:flutter_camera/model/camera_feed_status.dart';
-import 'package:flutter_camera/providers/location_provider.dart';
+import 'package:flutter_camera/providers/inventory_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'dart:typed_data';
 import 'package:flutter_camera/model/photo_item.dart';
@@ -14,6 +15,12 @@ import 'dart:ui';
 import 'package:flutter_camera/api/gemini.dart';
 
 part 'photo_processor_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+class ResolutionQuality extends _$ResolutionQuality {
+  @override
+  ResolutionPreset build() => ResolutionPreset.low;
+}
 
 @Riverpod(keepAlive: true)
 class CameraFeedState extends _$CameraFeedState {
@@ -36,7 +43,7 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
   final BASELINE_STREAK_LENGTH = 4;
 
   DateTime _lastInvTime = DateTime(1900);
-  final FOUND_ITEM_COOLDOWN = Duration(seconds: 1);
+  final FOUND_ITEM_COOLDOWN = Duration(seconds: 4);
 
   int _unchangedStreak = 0;
 
@@ -105,7 +112,9 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
           'Time to check if different than previous: ${stopwatch.elapsedMilliseconds} ms');
 
       _unchangedStreak = 0;
-      photoState = PhotoState.DIFF;
+      photoState = PhotoState.INVENTORY;
+
+      print('last inv time $_lastInvTime this photo ${photoItem.creationTime}');
 
       if (photoItem.creationTime.difference(_lastInvTime) <
           FOUND_ITEM_COOLDOWN) {
@@ -115,25 +124,39 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
         stopwatch.start();
         final jpegBytes = await photoItem.getJpegBytes();
         stopwatch.stop();
-        print(
-            'Time to get jpeg bytes: ${stopwatch.elapsedMilliseconds} ms');
+        print('Time to get jpeg bytes: ${stopwatch.elapsedMilliseconds} ms');
         stopwatch.reset();
         stopwatch.start();
 
-        final geminiDesc = await describeHeldObject(jpegBytes);
+        var geminiDesc = '';
+
+        try {
+          geminiDesc = await describeHeldObject(jpegBytes);
+        } catch (e) {
+          print('error $e');
+        }
+
         photoItem.geminiDesc = geminiDesc;
         stopwatch.stop();
+
         print(
             'Time to call Gemini and describe object: ${stopwatch.elapsedMilliseconds} ms');
 
-        photoState = geminiDesc == null
-            ? PhotoState.NOT_INVENTORY
-            : PhotoState.INVENTORY;
+        if (geminiDesc.length < 10) {
+          if (geminiDesc.toLowerCase().contains("none")) {
+            photoState = PhotoState.NOT_INVENTORY;
+          } else if (geminiDesc.toLowerCase().contains("blur")) {
+            photoState = PhotoState.BLUR;
+          }
+        }
 
         if (photoState == PhotoState.INVENTORY) {
           print("got an item");
-          GCSUploader.uploadImageEventually(photoItem);
-          ref.read(inventoryItemDetectedProvider.notifier).onAutomationFieldsComplete(photoItem);
+          _lastInvTime = photoItem.creationTime;
+          photoItem.gcsUrl = GCSUploader.uploadImageEventually(photoItem);
+          ref
+              .read(inventoryItemDetectedProvider.notifier)
+              .onAutomationFieldsComplete(photoItem);
         }
       }
     } else {

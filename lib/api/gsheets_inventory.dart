@@ -60,6 +60,8 @@ class GoogleSheetsInventory {
     if (_inventorySheet == null) {
       throw Exception("Worksheet is not initialized.");
     }
+
+    print('Adding inventory item with ai desc ${item.aiDesc}');
     await _inventorySheet!.values.appendRow(item.toMap().values.toList());
   }
 

@@ -1,18 +1,48 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'location_provider.dart';
+part of 'inventory_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
+String _$geminiModelHash() => r'c370faaec273be00da0edaa572ec2d405f9090fe';
+
+/// See also [GeminiModel].
+@ProviderFor(GeminiModel)
+final geminiModelProvider = NotifierProvider<GeminiModel, String>.internal(
+  GeminiModel.new,
+  name: r'geminiModelProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$geminiModelHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$GeminiModel = Notifier<String>;
+String _$audioDescriptionHash() => r'7e2b956e91deaa893fa6049ade6a5cb52c7de1e5';
+
+/// See also [AudioDescription].
+@ProviderFor(AudioDescription)
+final audioDescriptionProvider =
+    NotifierProvider<AudioDescription, bool>.internal(
+  AudioDescription.new,
+  name: r'audioDescriptionProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$audioDescriptionHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$AudioDescription = Notifier<bool>;
 String _$inventoryItemDetectedHash() =>
-    r'104d1580737389f46b630f60cb8f5b341c02a449';
+    r'64ca5adc73c4c46df3f1049d922b3653501139be';
 
 /// See also [InventoryItemDetected].
 @ProviderFor(InventoryItemDetected)
 final inventoryItemDetectedProvider =
-    AsyncNotifierProvider<InventoryItemDetected, PhotoItem?>.internal(
+    NotifierProvider<InventoryItemDetected, PhotoItem?>.internal(
   InventoryItemDetected.new,
   name: r'inventoryItemDetectedProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -22,7 +52,7 @@ final inventoryItemDetectedProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$InventoryItemDetected = AsyncNotifier<PhotoItem?>;
+typedef _$InventoryItemDetected = Notifier<PhotoItem?>;
 String _$inventorySheetHash() => r'46884a9445f31b4f41ce9f3d751c7201b2a51493';
 
 /// See also [InventorySheet].
@@ -39,7 +69,7 @@ final inventorySheetProvider =
 );
 
 typedef _$InventorySheet = AsyncNotifier<GoogleSheetsInventory>;
-String _$locationListHash() => r'548a5abd638b2eca0b82ddfaf7bcf4cebeb8330a';
+String _$locationListHash() => r'5a2f69aa9c454e0330435178d3ad64e0f1f752e1';
 
 /// See also [LocationList].
 @ProviderFor(LocationList)

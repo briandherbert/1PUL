@@ -6,6 +6,22 @@ part of 'photo_processor_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$resolutionQualityHash() => r'56a45d5f5ad1fccee17b07c9556465c5a9a0be38';
+
+/// See also [ResolutionQuality].
+@ProviderFor(ResolutionQuality)
+final resolutionQualityProvider =
+    NotifierProvider<ResolutionQuality, ResolutionPreset>.internal(
+  ResolutionQuality.new,
+  name: r'resolutionQualityProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$resolutionQualityHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ResolutionQuality = Notifier<ResolutionPreset>;
 String _$cameraFeedStateHash() => r'ed4ee7e913f5c2b0a9d08c46d280d82bd9f8c24b';
 
 /// See also [CameraFeedState].
@@ -22,7 +38,7 @@ final cameraFeedStateProvider =
 );
 
 typedef _$CameraFeedState = Notifier<CameraFeedStatus>;
-String _$rawPhotoProcessorHash() => r'3edb4bb6ceef3fe84551c722ce81a49be46a1bc4';
+String _$rawPhotoProcessorHash() => r'1e8d0e7eabb3a595296afbb4ec4e80035e300c78';
 
 /// See also [RawPhotoProcessor].
 @ProviderFor(RawPhotoProcessor)

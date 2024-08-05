@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_camera/bl/image_utils.dart' as img_utils;
 import 'package:intl/intl.dart';
 
-enum PhotoState { NORMAL, BASELINE, DIFF, INVENTORY, NOT_INVENTORY, POST_INVENTORY_NOISE }
+enum PhotoState { NORMAL, BASELINE, DIFF, INVENTORY, BLUR, NOT_INVENTORY, POST_INVENTORY_NOISE }
 
 class PhotoItem {
   final Uint8List capturedBytes;

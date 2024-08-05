@@ -5,9 +5,10 @@ import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_camera/api/gsheets_inventory.dart';
 import 'package:flutter_camera/model/camera_feed_status.dart';
-import 'package:flutter_camera/providers/location_provider.dart';
+import 'package:flutter_camera/providers/inventory_provider.dart';
 import 'package:flutter_camera/providers/photo_processor_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_camera/globals.dart';
 
 class CameraWidget extends ConsumerStatefulWidget {
   const CameraWidget({super.key});
@@ -18,10 +19,6 @@ class CameraWidget extends ConsumerStatefulWidget {
 
 class CameraWidgetState extends ConsumerState<CameraWidget> {
   CameraController? _camerController;
-
-  static const FRAME_INTERVAL_MS = 1000;
-
-  final BASELINE_IMAGE_REQ_FRAMES = 4;
 
   Timer? _timer;
 
@@ -41,7 +38,7 @@ class CameraWidgetState extends ConsumerState<CameraWidget> {
     final camera = cameras.first;
     _camerController = CameraController(
       camera,
-      ResolutionPreset.high,
+      REZ,
       enableAudio: false,
     );
 
@@ -98,12 +95,12 @@ class CameraWidgetState extends ConsumerState<CameraWidget> {
     if (_camerController != null && _camerController!.value.isInitialized) {
       return GestureDetector(
         child: Container(
-          width: 200,
-          height: 200,
+          // width: 200,
+          // height: 200,
           decoration: BoxDecoration(
             border: Border.all(
               color: isPaused ? Colors.green : Colors.red,
-              width: 14,
+              width: 0,
             ),
           ),
           child: IgnorePointer(child: CameraPreview(_camerController!)),

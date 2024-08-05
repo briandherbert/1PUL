@@ -44,6 +44,7 @@ class InventoryItem {
   }
 
   static fromPhotoItem(PhotoItem pi) {
+    print('convert photo item with url ${pi.gcsUrl}');
     return InventoryItem(
       itemId: pi.formattedTimestamp,
       aiDesc: pi.geminiDesc?? "none",

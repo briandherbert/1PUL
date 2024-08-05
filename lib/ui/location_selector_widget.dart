@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter_camera/providers/location_provider.dart';
+import 'package:flutter_camera/providers/inventory_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LocationSelectorWidget extends ConsumerWidget {
+  const LocationSelectorWidget({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentLocation = ref.watch(currentLocationProvider);
     final locationList = ref.watch(locationListProvider).value;
+
+    if (locationList == null || locationList.isEmpty) {
+      return const Text("Loading locations...");
+    }
+
+    final currentLocation = ref.watch(currentLocationProvider);
 
     print('build location select, current $currentLocation');
 
-    if (currentLocation == null || locationList == null || locationList.isEmpty) {
-      return Text("Loading locations...");
-    }
-
     return DropdownButton<String>(
       value: currentLocation,
-      hint: Text('Select Location'),
-      items: locationList!.map((String location) {
+      hint: const Text('Select Location'),
+      items: locationList.map((String location) {
         return DropdownMenuItem<String>(
           value: location,
-          child: Text(location),
+          child: Text(
+              location,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
         );
       }).toList(),
       onChanged: (String? newValue) {

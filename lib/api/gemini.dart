@@ -13,7 +13,7 @@ Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) asy
   final apiKey = dotenv.env['GEMINI_KEY'];
   if (apiKey == null) {
     print('No API_KEY environment variable');
-    return 'nada';
+    return '';
   }
 
   // Initialize the GenerativeModel
@@ -35,17 +35,13 @@ Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) asy
   return response.text!;
 }
 
-  Future<String?> describeHeldObject(Uint8List jpegBytes) async {
+  Future<String> describeHeldObject(Uint8List jpegBytes) async {
     final prompt =
-        "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, and the object is visible enough to describe, describe the object, otherwise, output NONE.";
+        "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, and the object is visible enough to describe, describe the object, otherwise, output NONE. If the object appears blurry or obstructed, output BLUR.";
     final result = await sendGeminiImage(jpegBytes, prompt: prompt);
     print("Gemini response $result");
 
-    if (!result.toLowerCase().contains("none") || result.length > 10) {
-      return result;
-    }
-
-    return null;
+    return result;
   }
 
 
@@ -60,7 +56,8 @@ Future<String> askGemini(String prompt) async {
     exit(1);
   }
   // The Gemini 1.5 models are versatile and work with both text-only and multimodal prompts
-  final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
+  //final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
+  final model = GenerativeModel(model: 'gemini-1.5-pro-exp-0801', apiKey: apiKey);
   final content = [Content.text(prompt)];
   final response = await model.generateContent(content);
   print(response.text);
