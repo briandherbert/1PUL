@@ -153,7 +153,6 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
         if (photoState == PhotoState.INVENTORY) {
           print("got an item");
           _lastInvTime = photoItem.creationTime;
-          photoItem.gcsUrl = GCSUploader.uploadImageEventually(photoItem);
           ref
               .read(inventoryItemDetectedProvider.notifier)
               .onAutomationFieldsComplete(photoItem);

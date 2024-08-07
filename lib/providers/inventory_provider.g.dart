@@ -20,7 +20,7 @@ final geminiModelProvider = NotifierProvider<GeminiModel, String>.internal(
 );
 
 typedef _$GeminiModel = Notifier<String>;
-String _$audioDescriptionHash() => r'7e2b956e91deaa893fa6049ade6a5cb52c7de1e5';
+String _$audioDescriptionHash() => r'e37f93c7c9fc39efdc4820c9096b3bf7e88b1863';
 
 /// See also [AudioDescription].
 @ProviderFor(AudioDescription)
@@ -37,7 +37,7 @@ final audioDescriptionProvider =
 
 typedef _$AudioDescription = Notifier<bool>;
 String _$inventoryItemDetectedHash() =>
-    r'64ca5adc73c4c46df3f1049d922b3653501139be';
+    r'05590ba8bd51c8e27a6d8358db36f37dde297b80';
 
 /// See also [InventoryItemDetected].
 @ProviderFor(InventoryItemDetected)
@@ -53,7 +53,7 @@ final inventoryItemDetectedProvider =
 );
 
 typedef _$InventoryItemDetected = Notifier<PhotoItem?>;
-String _$inventorySheetHash() => r'46884a9445f31b4f41ce9f3d751c7201b2a51493';
+String _$inventorySheetHash() => r'b16578edd463d0a5df800cf30d7fcfe2347c1afd';
 
 /// See also [InventorySheet].
 @ProviderFor(InventorySheet)
@@ -69,12 +69,12 @@ final inventorySheetProvider =
 );
 
 typedef _$InventorySheet = AsyncNotifier<GoogleSheetsInventory>;
-String _$locationListHash() => r'5a2f69aa9c454e0330435178d3ad64e0f1f752e1';
+String _$locationListHash() => r'b414aea264e439bfc90565e08e73116cd902293a';
 
 /// See also [LocationList].
 @ProviderFor(LocationList)
 final locationListProvider =
-    AsyncNotifierProvider<LocationList, List<String>>.internal(
+    NotifierProvider<LocationList, List<String>>.internal(
   LocationList.new,
   name: r'locationListProvider',
   debugGetCreateSourceHash:
@@ -83,7 +83,7 @@ final locationListProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$LocationList = AsyncNotifier<List<String>>;
+typedef _$LocationList = Notifier<List<String>>;
 String _$currentLocationHash() => r'f982ec98be70e66eec82d3a0f5cf2338fcad70a8';
 
 /// See also [CurrentLocation].

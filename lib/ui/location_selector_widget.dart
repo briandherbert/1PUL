@@ -7,9 +7,9 @@ class LocationSelectorWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locationList = ref.watch(locationListProvider).value;
+    final locationList = ref.watch(locationListProvider);
 
-    if (locationList == null || locationList.isEmpty) {
+    if (locationList.isEmpty) {
       return const Text("Loading locations...");
     }
 

@@ -6,6 +6,7 @@ import 'package:flutter_camera/ui/audio_record_widget.dart';
 import 'package:flutter_camera/ui/camera_widget.dart';
 import 'package:flutter_camera/ui/debug_widget.dart';
 import 'package:flutter_camera/ui/test_inventory_widget.dart';
+import 'package:flutter_camera/ui/webrtc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -56,7 +57,9 @@ class MainApp extends StatelessWidget {
                       color: Color.fromARGB(255, 192, 160, 247)),
                 ),
               ),
-          body: getCoolBackground(DebugWidget()),
+          //body: getCoolBackground(DebugWidget()),
+          //body: TestInventoryWidget(),
+          body: HLSVideoWidget(streamUrl: 'http://localhost:8083/play/hls/demo1/index.m3u8'),
           //body: getCoolBackground(RealTimeTranscription()),
         ));
   }

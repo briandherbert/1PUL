@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_camera/model/photo_item.dart';
+import 'package:flutter_camera/providers/inventory_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:html' as html;
 import 'dart:typed_data';
@@ -124,16 +125,20 @@ class InventoryItemWidgetState extends ConsumerState<InventoryItemWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final listen = ref.read(audioDescriptionProvider);
+
     if (!playedChime) {
       playedChime = true;
       // Schedule the chime to play after a short delay
-      Future.delayed(Duration(milliseconds: 50), () {
+      Future.delayed(const Duration(milliseconds: 50), () {
         _playChime();
       });
 
-      Future.delayed(Duration(milliseconds: 700), () {
-        _startRecording();
-      });
+      if (listen) {
+        Future.delayed(const Duration(milliseconds: 700), () {
+          _startRecording();
+        });
+      }
     }
 
     return Column(
@@ -150,22 +155,27 @@ class InventoryItemWidgetState extends ConsumerState<InventoryItemWidget> {
           widget.photoItem.geminiDesc!,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            "Human Description (speak to add)",
-            style: Theme.of(context).textTheme.labelMedium,
+        const SizedBox(
+          height: 20,
+        ),
+        if (listen)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Human Description (speak to add)",
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
           ),
-        ),
-        Text(
-          _transcription,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
+        if (listen)
+          Text(
+            _transcription,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
         Image.memory(
           widget.photoItem.capturedBytes,
           fit: BoxFit.contain,
         ),
-        SizedBox(
+        const SizedBox(
           height: 10,
         ),
       ],

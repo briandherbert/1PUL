@@ -7,6 +7,7 @@ import 'package:flutter_camera/ui/camera_widget.dart';
 import 'package:flutter_camera/ui/inventory_item_widget.dart';
 import 'package:flutter_camera/ui/location_selector_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DebugWidget extends ConsumerStatefulWidget {
   @override
@@ -16,19 +17,46 @@ class DebugWidget extends ConsumerStatefulWidget {
 class DebugWidgetState extends ConsumerState<DebugWidget> {
   PhotoItem? _item;
 
+  bool _isMicrophoneGranted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkMicrophonePermission();
+  }
+
+  Future<void> _checkMicrophonePermission() async {
+    final status = await Permission.microphone.status;
+    setState(() {
+      _isMicrophoneGranted = status == PermissionStatus.granted;
+    });
+  }
+
+  Future<void> _requestMicrophonePermission() async {
+    if (await Permission.microphone.request().isGranted) {
+      setState(() {
+        _isMicrophoneGranted = true;
+      });
+    }
+  }
+
   // Adjust these values as needed
   static const double locationSelectorHeight = 50.0;
   static const double statusBarHeight = 50.0;
 
   @override
   Widget build(BuildContext context) {
+    print('${DateTime.now()} Build debug widget');
+
     final lastInventoryItem = ref.watch(inventoryItemDetectedProvider);
+
+    final isListening = ref.watch(audioDescriptionProvider);
 
     if (lastInventoryItem != null &&
         lastInventoryItem.timestamp != _item?.timestamp) {
       _item = lastInventoryItem;
 
-      print('Inventory widget, current item time ${_item!.creationTime}');
+      print('${DateTime.now()} Inventory widget, current item time ${_item!.creationTime}');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         print('posting add item');
         ref.read(inventorySheetProvider.notifier).addItem(_item!);
@@ -37,7 +65,7 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
             .read(cameraFeedStateProvider.notifier)
             .setStatus(CameraFeedStatus.PAUSE);
 
-        showPhotoItemDialog(context, _item!);
+        showPhotoItemDialog(context, _item!, timeoutSec: isListening ? 6 : 3);
       });
     }
 
@@ -53,6 +81,27 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
             const SizedBox(
               height: locationSelectorHeight,
               child: LocationSelectorWidget(),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            Container(
+              width: 300,
+              child: CheckboxListTile(
+                title: Text("Listen for descriptions"),
+                value: isListening,
+                onChanged: (bool? newValue) {
+                  ref
+                      .read(audioDescriptionProvider.notifier)
+                      .setAudioDesc(newValue!);
+                  if (newValue == true) {
+                    _requestMicrophonePermission();
+                  }
+                },
+              ),
+            ),
+            const SizedBox(
+              height: 20,
             ),
             Container(
               color: Colors.black12,
@@ -98,12 +147,13 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
     );
   }
 
-  void showPhotoItemDialog(BuildContext context, PhotoItem photoItem) {
+  void showPhotoItemDialog(BuildContext context, PhotoItem photoItem, {int timeoutSec = 5}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Dialog Title'),
+        // Create the AlertDialog
+        AlertDialog dialog = AlertDialog(
+          title: Text('Found Item'),
           content: InventoryItemWidget(photoItem),
           actions: <Widget>[
             TextButton(
@@ -114,6 +164,18 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
             ),
           ],
         );
+
+        // Schedule the dialog to close after 10 seconds
+        Future.delayed(Duration(seconds: timeoutSec), () {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+          ref
+              .read(cameraFeedStateProvider.notifier)
+              .setStatus(CameraFeedStatus.CAPTURE);
+        });
+
+        return dialog;
       },
     );
   }

@@ -1,6 +1,5 @@
 // flutter pub run build_runner watch
 
-
 import 'package:flutter_camera/api/gsheets_inventory.dart';
 import 'package:flutter_camera/model/inventory_item.dart';
 import 'package:flutter_camera/model/photo_item.dart';
@@ -35,16 +34,20 @@ class InventoryItemDetected extends _$InventoryItemDetected {
 
   @override
   PhotoItem? build() {
+    print('${DateTime.now()} Build inventory provider');
+
     PhotoItem? item = items.isEmpty ? null : items.removeLast();
     return item;
   }
 
   void onAutomationFieldsComplete(PhotoItem photoItem) {
-    print("Inventory item provider got photo ${photoItem.geminiDesc}");
+    print("${DateTime.now()} item provider got photo ${photoItem.geminiDesc}");
     items = [photoItem, ...items];
 
     if (items.length == 1) {
       state = items.removeLast();
+      print('${DateTime.now()} set state inventory provider');
+
     }
   }
 
@@ -76,7 +79,15 @@ class LocationList extends _$LocationList {
   List<String> _locations = [];
 
   @override
-  Future<List<String>> build() async {
+  List<String> build() {
+    // Initialize with an empty list
+    _locations = [];
+    // Trigger the fetch asynchronously
+    fetchLocations();
+    return _locations;
+  }
+
+  Future<void> fetchLocations() async {
     final inv = await ref.watch(inventorySheetProvider.future);
 
     print("location provider inventory value $inv");
@@ -84,14 +95,7 @@ class LocationList extends _$LocationList {
     _locations = [...await inv.getLocations()];
 
     print('Provider got locations $_locations');
-    ref.watch(currentLocationProvider.notifier).setLocation(_locations[0]);
-    return _locations;
-  }
-
-  Future<void> refreshLocations() async {
-    state = const AsyncValue.loading();
-    state =
-        await AsyncValue.guard(() => GoogleSheetsInventory().getLocations());
+    state = _locations;
   }
 }
 

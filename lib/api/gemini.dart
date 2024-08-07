@@ -39,7 +39,7 @@ Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) asy
     final prompt =
         "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, and the object is visible enough to describe, describe the object, otherwise, output NONE. If the object appears blurry or obstructed, output BLUR.";
     final result = await sendGeminiImage(jpegBytes, prompt: prompt);
-    print("Gemini response $result");
+    print("${DateTime.now()} Gemini response $result");
 
     return result;
   }
