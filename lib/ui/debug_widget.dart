@@ -6,6 +6,7 @@ import 'package:flutter_camera/providers/photo_processor_provider.dart';
 import 'package:flutter_camera/ui/camera_widget.dart';
 import 'package:flutter_camera/ui/inventory_item_widget.dart';
 import 'package:flutter_camera/ui/location_selector_widget.dart';
+import 'package:flutter_camera/ui/webrtc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -105,8 +106,9 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
             ),
             Container(
               color: Colors.black12,
-              height: 300,
-              child: const CameraWidget(),
+              height: 500,
+              //child: const CameraWidget(),
+              child: HLSVideoWidget(streamUrl: 'http://localhost:8083/play/hls/demo1/index.m3u8')
             ),
             getStatsWidget(),
             Expanded(

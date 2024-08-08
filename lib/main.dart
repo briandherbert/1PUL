@@ -57,9 +57,9 @@ class MainApp extends StatelessWidget {
                       color: Color.fromARGB(255, 192, 160, 247)),
                 ),
               ),
-          //body: getCoolBackground(DebugWidget()),
+          body: getCoolBackground(DebugWidget()),
           //body: TestInventoryWidget(),
-          body: HLSVideoWidget(streamUrl: 'http://localhost:8083/play/hls/demo1/index.m3u8'),
+          //body: HLSVideoWidget(streamUrl: 'http://localhost:8083/play/hls/demo1/index.m3u8'),
           //body: getCoolBackground(RealTimeTranscription()),
         ));
   }
