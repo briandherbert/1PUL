@@ -171,9 +171,12 @@ class InventoryItemWidgetState extends ConsumerState<InventoryItemWidget> {
             _transcription,
             style: Theme.of(context).textTheme.bodyLarge,
           ),
-        Image.memory(
-          widget.photoItem.capturedBytes,
-          fit: BoxFit.contain,
+        SizedBox(
+          width: 500,
+          child: Image.memory(
+            widget.photoItem.capturedBytes,
+            fit: BoxFit.contain,
+          ),
         ),
         const SizedBox(
           height: 10,

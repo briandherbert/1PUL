@@ -3,18 +3,35 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:image/image.dart' as img;
 
-img.Decoder? decoder;
+//img.Decoder? decoder;
 
-Future<Uint8List> convertRawImageToJpeg(Uint8List imgBytes) async {
+Map<String, img.Decoder> locationToDecoder = {};
+
+Future<Uint8List> convertRawImageToJpeg(Uint8List imgBytes, String location) async {
   // Decode the raw image bytes
+  var decoder = locationToDecoder[location];
   if (decoder == null) {
     decoder = img.findDecoderForData(imgBytes);
     print('found decoder ${decoder}');
+    locationToDecoder[location] = decoder!;
   }
-  img.Image? image = decoder!.decode(imgBytes);
+
+  img.Image? image = decoder.decode(imgBytes, frame: 0);
 
   if (image == null) {
     throw Exception('Unable to decode image');
+  }
+
+  // Log the image height and width
+  print('Image width: ${image.width}, height: ${image.height}');
+
+  if (image.height > 1900) {
+    print('scale down image');
+    image = img.copyResize(
+      image,
+      width: image.width ~/ 2,
+      height: image.height ~/ 2,
+    );
   }
 
   // Encode the image to JPEG
@@ -41,7 +58,6 @@ Future<Uint8List> getPixelData(ui.Image image) async {
 
 bool areImagesDifferent(Uint8List? pixels1, Uint8List? pixels2,
     {int threshold = 50, double percentage = .15, int step = 10}) {
-
   if (pixels1 == null) {
     return pixels2 != null;
   } else if (pixels2 == null) {

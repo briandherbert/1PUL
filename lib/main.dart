@@ -4,9 +4,11 @@ import 'package:flutter_camera/globals.dart';
 import 'package:flutter_camera/ui/audio_record_widget.dart';
 //import 'package:flutter_camera/ui/camera_widget.dart';
 import 'package:flutter_camera/ui/camera_widget.dart';
-import 'package:flutter_camera/ui/debug_widget.dart';
+import 'package:flutter_camera/ui/inventory_widget.dart';
+import 'package:flutter_camera/ui/monitor_widget.dart';
+import 'package:flutter_camera/ui/landing.dart';
 import 'package:flutter_camera/ui/test_inventory_widget.dart';
-import 'package:flutter_camera/ui/webrtc.dart';
+import 'package:flutter_camera/ui/hls_viewer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -43,24 +45,11 @@ class MainApp extends StatelessWidget {
             ),
           ),
         ),
-        home: Scaffold(
-          appBar: AppBar(
-              centerTitle: true,
-              backgroundColor: Colors.black,
-              flexibleSpace: 
-                const Text(
-                  "  1PUL",
-                  style: TextStyle(
-                      fontFamily: 'AnaheimXB',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 40,
-                      color: Color.fromARGB(255, 192, 160, 247)),
-                ),
-              ),
-          body: getCoolBackground(DebugWidget()),
-          //body: TestInventoryWidget(),
-          //body: HLSVideoWidget(streamUrl: 'http://localhost:8083/play/hls/demo1/index.m3u8'),
-          //body: getCoolBackground(RealTimeTranscription()),
-        ));
+        //home: getCoolScaffold(InventoryWidget()));
+        home: getCoolScaffold(InventoryWidget()));
   }
 }
+
+          //body: getCoolBackground(DebugWidget()),
+          //body: TestInventoryWidget(),
+          //body: HLSVideoWidget(streamUrl: 'http://localhost:8083/play/hls/demo1/index.m3u8'),

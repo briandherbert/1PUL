@@ -33,7 +33,7 @@ class PhotoItem {
   }
 
   Future<Uint8List> getJpegBytes() async {
-    _jpegBytes ??= await img_utils.convertRawImageToJpeg(capturedBytes);
+    _jpegBytes ??= await img_utils.convertRawImageToJpeg(capturedBytes, location);
 
     return _jpegBytes!;
   }

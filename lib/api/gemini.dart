@@ -36,7 +36,7 @@ Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) asy
 }
 
   Future<String> describeHeldObject(Uint8List jpegBytes) async {
-    final prompt =
+    const prompt =
         "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, and the object is visible enough to describe, describe the object, otherwise, output NONE. If the object appears blurry or obstructed, output BLUR.";
     final result = await sendGeminiImage(jpegBytes, prompt: prompt);
     print("${DateTime.now()} Gemini response $result");
@@ -46,11 +46,9 @@ Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) asy
 
 
 Future<String> askGemini(String prompt) async {
-  debugPrint('asking gemini $prompt');
+  //debugPrint('asking gemini $prompt');
   // Access your API key as an environment variable (see "Set up your API key" above)
   final apiKey = dotenv.env['GEMINI_KEY'];
-  //final apiKey = "AIzaSyAHhstTQsNXedbmklJX3xkC24mXBrcYL_o";
-  debugPrint('api key $apiKey');
   if (apiKey == null) {
     print('No \$API_KEY environment variable');
     exit(1);

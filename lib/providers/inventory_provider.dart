@@ -59,6 +59,14 @@ class InventoryItemDetected extends _$InventoryItemDetected {
 }
 
 @Riverpod(keepAlive: true)
+class InventoryItems extends _$InventoryItems {
+  Future<List<InventoryItem>> build() async {
+    return (await ref.watch(inventorySheetProvider.future)).readItems();
+  }
+
+}
+
+@Riverpod(keepAlive: true)
 class InventorySheet extends _$InventorySheet {
   final _inv = GoogleSheetsInventory();
 

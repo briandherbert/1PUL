@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera/api/gcs.dart';
 import 'package:flutter_camera/model/camera_feed_status.dart';
 import 'package:flutter_camera/model/photo_item.dart';
 import 'package:flutter_camera/providers/inventory_provider.dart';
@@ -6,16 +7,15 @@ import 'package:flutter_camera/providers/photo_processor_provider.dart';
 import 'package:flutter_camera/ui/camera_widget.dart';
 import 'package:flutter_camera/ui/inventory_item_widget.dart';
 import 'package:flutter_camera/ui/location_selector_widget.dart';
-import 'package:flutter_camera/ui/webrtc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class DebugWidget extends ConsumerStatefulWidget {
+class MonitorWidget extends ConsumerStatefulWidget {
   @override
-  DebugWidgetState createState() => DebugWidgetState();
+  MonitorWidgetState createState() => MonitorWidgetState();
 }
 
-class DebugWidgetState extends ConsumerState<DebugWidget> {
+class MonitorWidgetState<T extends ConsumerStatefulWidget> extends ConsumerState<T> {
   PhotoItem? _item;
 
   bool _isMicrophoneGranted = false;
@@ -50,26 +50,35 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
     print('${DateTime.now()} Build debug widget');
 
     final lastInventoryItem = ref.watch(inventoryItemDetectedProvider);
-
-    final isListening = ref.watch(audioDescriptionProvider);
+    final isListening = canListen() && ref.watch(audioDescriptionProvider);
 
     if (lastInventoryItem != null &&
         lastInventoryItem.timestamp != _item?.timestamp) {
       _item = lastInventoryItem;
 
-      print('${DateTime.now()} Inventory widget, current item time ${_item!.creationTime}');
+      print(
+          '${DateTime.now()} Inventory widget, current item time ${_item!.creationTime}');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         print('posting add item');
-        ref.read(inventorySheetProvider.notifier).addItem(_item!);
 
         ref
             .read(cameraFeedStateProvider.notifier)
             .setStatus(CameraFeedStatus.PAUSE);
 
-        showPhotoItemDialog(context, _item!, timeoutSec: isListening ? 6 : 3);
+        showPhotoItemDialog(context, _item!, timeoutSec: isListening ? 20 : 30);
+        _item!.gcsUrl = GCSUploader.uploadImageEventually(_item!);
+        ref.read(inventorySheetProvider.notifier).addItem(_item!);
       });
     }
 
+    return getContent(isListening: isListening);
+  }
+
+  bool canListen() {
+    return true;
+  }
+
+  Widget getContent({bool isListening = false}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Column(
@@ -77,14 +86,14 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(
-              height: 20,
+              height: 10,
             ),
             const SizedBox(
               height: locationSelectorHeight,
               child: LocationSelectorWidget(),
             ),
             const SizedBox(
-              height: 20,
+              height: 10,
             ),
             Container(
               width: 300,
@@ -102,13 +111,13 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
               ),
             ),
             const SizedBox(
-              height: 20,
+              height: 16,
             ),
             Container(
               color: Colors.black12,
-              height: 500,
-              //child: const CameraWidget(),
-              child: HLSVideoWidget(streamUrl: 'http://localhost:8083/play/hls/demo1/index.m3u8')
+              height: 400,
+              child: const CameraWidget(),
+              //child: HLSVideoWidget(streamUrl: 'http://localhost:8083/play/hls/demo1/index.m3u8')
             ),
             getStatsWidget(),
             Expanded(
@@ -149,7 +158,8 @@ class DebugWidgetState extends ConsumerState<DebugWidget> {
     );
   }
 
-  void showPhotoItemDialog(BuildContext context, PhotoItem photoItem, {int timeoutSec = 5}) {
+  void showPhotoItemDialog(BuildContext context, PhotoItem photoItem,
+      {int timeoutSec = 5}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

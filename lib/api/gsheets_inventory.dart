@@ -41,7 +41,7 @@ class GoogleSheetsInventory {
     final rows = await _inventorySheet!.values.map.allRows();
     if (rows == null) return [];
 
-    print('got sheets rows ${rows}');
+    //print('got sheets rows ${rows}');
 
     return rows.map((row) {
       return InventoryItem(

@@ -53,6 +53,22 @@ final inventoryItemDetectedProvider =
 );
 
 typedef _$InventoryItemDetected = Notifier<PhotoItem?>;
+String _$inventoryItemsHash() => r'053ac5aac3dc57f50b519b33884deae3a7e733fb';
+
+/// See also [InventoryItems].
+@ProviderFor(InventoryItems)
+final inventoryItemsProvider =
+    AsyncNotifierProvider<InventoryItems, List<InventoryItem>>.internal(
+  InventoryItems.new,
+  name: r'inventoryItemsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$inventoryItemsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$InventoryItems = AsyncNotifier<List<InventoryItem>>;
 String _$inventorySheetHash() => r'b16578edd463d0a5df800cf30d7fcfe2347c1afd';
 
 /// See also [InventorySheet].

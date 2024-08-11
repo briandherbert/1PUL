@@ -1,3 +1,4 @@
+import 'package:flutter_camera/globals.dart';
 import 'package:flutter_camera/model/photo_item.dart';
 
 class InventoryItem {
@@ -6,7 +7,7 @@ class InventoryItem {
   final String humanDesc;
   final String date;
   final String location;
-  final String image;
+  late String image;
   final int quantity;
 
   InventoryItem({
@@ -17,7 +18,11 @@ class InventoryItem {
     required this.location,
     required this.image,
     required this.quantity,
-  });
+  }) {
+    if (image.isEmpty) {
+      this.image = getGcsImageUrl(inventoryItemId: itemId)!;
+    }
+  }
 
   Map<String, dynamic> toMap() {
     return {

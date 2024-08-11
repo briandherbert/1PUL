@@ -71,7 +71,7 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
       _processedPhotos.insert(0, processedPhoto);
       state = [..._processedPhotos];
     } catch (e, st) {
-      print("Error processing photo");
+      print("Error processing photo ${e.toString()} ${st.toString()}");
       //state = [];
     } finally {
       _isProcessing = false;
@@ -143,7 +143,7 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
             'Time to call Gemini and describe object: ${stopwatch.elapsedMilliseconds} ms');
 
         if (geminiDesc.length < 10) {
-          if (geminiDesc.toLowerCase().contains("none")) {
+          if (geminiDesc.toLowerCase().contains("none") || geminiDesc.length < 3) {
             photoState = PhotoState.NOT_INVENTORY;
           } else if (geminiDesc.toLowerCase().contains("blur")) {
             photoState = PhotoState.BLUR;

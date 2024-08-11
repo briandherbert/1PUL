@@ -1,12 +1,24 @@
+//
+// Capture from a security cam like Wyze.
+// If you have an RTSC stream, convert it to HLSLL with
+// https://github.com/deepch/RTSPtoHLSLL
+// While this works, and latency isn't an issue for passive security cams,
+// it's killer on the single web thread. 
+//
+
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_camera/globals.dart';
 import 'package:flutter_camera/model/camera_feed_status.dart';
 import 'package:flutter_camera/providers/photo_processor_provider.dart';
+import 'package:flutter_camera/ui/location_selector_widget.dart';
+import 'package:flutter_camera/ui/monitor_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
+
 import 'dart:js' as js;
 
 class HLSVideoWidget extends ConsumerStatefulWidget {
@@ -18,7 +30,7 @@ class HLSVideoWidget extends ConsumerStatefulWidget {
   _HLSVideoWidgetState createState() => _HLSVideoWidgetState();
 }
 
-class _HLSVideoWidgetState extends ConsumerState<HLSVideoWidget> {
+class _HLSVideoWidgetState extends MonitorWidgetState<HLSVideoWidget> {
   late html.VideoElement _videoElement;
   Timer? _timer;
 
@@ -40,11 +52,13 @@ class _HLSVideoWidgetState extends ConsumerState<HLSVideoWidget> {
   }
 
   void _initializeHls() {
+    final streamUrl = widget.streamUrl.length > 5 ? widget.streamUrl : DEFAULT_HLS_STREAM;
+    print("hls init with ${streamUrl}");
     final script = html.ScriptElement()
       ..src = 'https://cdn.jsdelivr.net/npm/hls.js@latest'
       ..type = 'application/javascript';
     script.onLoad.listen((event) {
-      js.context.callMethod('initializeHls', [_videoElement, widget.streamUrl]);
+      js.context.callMethod('initializeHls', [_videoElement, streamUrl]);
     });
     html.document.body!.append(script);
   }
@@ -61,7 +75,7 @@ class _HLSVideoWidgetState extends ConsumerState<HLSVideoWidget> {
     }
 
     // Start capturing images every 500ms
-    _timer = Timer.periodic(const Duration(milliseconds: 2000), (timer) async {
+    _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) async {
       final captureStatus = ref.read(cameraFeedStateProvider);
       if (captureStatus == CameraFeedStatus.CAPTURE) {
         print('got new image');
@@ -76,7 +90,7 @@ class _HLSVideoWidgetState extends ConsumerState<HLSVideoWidget> {
         width: _videoElement.videoWidth, height: _videoElement.videoHeight);
     final context = canvas.context2D;
     context.drawImage(_videoElement, 0, 0);
-    final blob = await canvas.toBlob('image/png');
+    final blob = await canvas.toBlob('image/jpeg');
     final reader = html.FileReader();
     reader.readAsArrayBuffer(blob!);
     reader.onLoadEnd.listen((event) {
@@ -95,16 +109,23 @@ class _HLSVideoWidgetState extends ConsumerState<HLSVideoWidget> {
   } 
 
   @override
-  Widget build(BuildContext context) {
+  bool canListen() {
+    return false;
+  }
+
+  @override
+  Widget getContent({bool isListening = false}) {
     return Column(
       children: [
-        SizedBox(
+        LocationSelectorWidget(),
+        const SizedBox(
           height: 300,
           child: HtmlElementView(viewType: 'videoElement'),
         ),
+        const SizedBox(height: 10,),
         ElevatedButton(
           onPressed: startCapture,
-          child: Text('Capture Frame'),
+          child: Text(ref.watch(cameraFeedStateProvider) == CameraFeedStatus.CAPTURE ? "PAUSE" : "CAPTURE"),
         ),
       ],
     );
