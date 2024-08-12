@@ -65,7 +65,7 @@ class MonitorWidgetState<T extends ConsumerStatefulWidget> extends ConsumerState
             .read(cameraFeedStateProvider.notifier)
             .setStatus(CameraFeedStatus.PAUSE);
 
-        showPhotoItemDialog(context, _item!, timeoutSec: isListening ? 20 : 30);
+        showPhotoItemDialog(context, _item!, timeoutSec: isListening ? 20 : 4);
         _item!.gcsUrl = GCSUploader.uploadImageEventually(_item!);
         ref.read(inventorySheetProvider.notifier).addItem(_item!);
       });

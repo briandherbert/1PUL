@@ -19,9 +19,7 @@ class InventoryItem {
     required this.image,
     required this.quantity,
   }) {
-    if (image.isEmpty) {
-      this.image = getGcsImageUrl(inventoryItemId: itemId)!;
-    }
+    this.image = getGcsImageUrl(inventoryItemId: itemId)!;
   }
 
   Map<String, dynamic> toMap() {
@@ -52,12 +50,23 @@ class InventoryItem {
     print('convert photo item with url ${pi.gcsUrl}');
     return InventoryItem(
       itemId: pi.formattedTimestamp,
-      aiDesc: pi.geminiDesc?? "none",
-      humanDesc: pi.humanDesc?? "none",
+      aiDesc: pi.geminiDesc ?? "none",
+      humanDesc: pi.humanDesc ?? "none",
       date: pi.formattedTimestamp,
       location: pi.location,
       image: '=Image("${pi.gcsUrl}")',
       quantity: 1,
     );
   }
+
+  // Equality check based on itemId
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is InventoryItem && other.itemId == itemId;
+  }
+
+  @override
+  int get hashCode => itemId.hashCode;
 }

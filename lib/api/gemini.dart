@@ -6,8 +6,11 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image/image.dart' as img;
 
+final GEMINI_MODEL_PRO_EXP = 'gemini-1.5-pro-exp-0801';
+final GEMINI_MODEL_FLASH = 'gemini-1.5-flash';
 
-Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) async {
+Future<String> sendGeminiImage(Uint8List imageBytes,
+    {prompt = "What's this", String? modelName}) async {
   debugPrint('sending Gemini image w prompt $prompt');
   // Access your API key as an environment variable
   final apiKey = dotenv.env['GEMINI_KEY'];
@@ -17,7 +20,8 @@ Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) asy
   }
 
   // Initialize the GenerativeModel
-  final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
+  final model =
+      GenerativeModel(model: modelName ?? GEMINI_MODEL_FLASH, apiKey: apiKey);
 
   // Prepare the image part
   final imagePart = DataPart('image/jpeg', imageBytes);
@@ -35,18 +39,19 @@ Future<String> sendGeminiImage(Uint8List imageBytes, {prompt="What's this"}) asy
   return response.text!;
 }
 
-  Future<String> describeHeldObject(Uint8List jpegBytes) async {
-    const prompt =
-        "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, and the object is visible enough to describe, describe the object, otherwise, output NONE. If the object appears blurry or obstructed, output BLUR.";
-    final result = await sendGeminiImage(jpegBytes, prompt: prompt);
-    print("${DateTime.now()} Gemini response $result");
+Future<String> describeHeldObject(Uint8List jpegBytes,
+    {String? modelName}) async {
+  const prompt =
+      "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, and the object is visible enough to describe, describe the object (and only the object), otherwise, output NONE. If the object appears blurry or obstructed, output BLUR.";
+  final result =
+      await sendGeminiImage(jpegBytes, prompt: prompt, modelName: modelName);
+  print("${DateTime.now()} Gemini response $result");
 
-    return result;
-  }
+  return result;
+}
 
-
-Future<String> askGemini(String prompt) async {
-  //debugPrint('asking gemini $prompt');
+Future<String> askGemini(String prompt, {String? modelName}) async {
+  debugPrint('asking gemini ${prompt.substring(0, 20)}');
   // Access your API key as an environment variable (see "Set up your API key" above)
   final apiKey = dotenv.env['GEMINI_KEY'];
   if (apiKey == null) {
@@ -55,14 +60,15 @@ Future<String> askGemini(String prompt) async {
   }
   // The Gemini 1.5 models are versatile and work with both text-only and multimodal prompts
   //final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
-  final model = GenerativeModel(model: 'gemini-1.5-pro-exp-0801', apiKey: apiKey);
+  final model = GenerativeModel(
+      model: modelName ?? GEMINI_MODEL_PRO_EXP, apiKey: apiKey);
   final content = [Content.text(prompt)];
   final response = await model.generateContent(content);
   print(response.text);
   return response.text!;
 }
 
-void geminiCompareImages() async {
+void geminiCompareImages(String modelName) async {
   // Access your API key as an environment variable (see "Set up your API key" above)
   final apiKey = Platform.environment['API_KEY'];
   if (apiKey == null) {
@@ -70,7 +76,7 @@ void geminiCompareImages() async {
     exit(1);
   }
   // The Gemini 1.5 models are versatile and work with both text-only and multimodal prompts
-  final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
+  final model = GenerativeModel(model: modelName, apiKey: apiKey);
   final (firstImage, secondImage) = await (
     File('image0.jpg').readAsBytes(),
     File('image1.jpg').readAsBytes()

@@ -1,5 +1,7 @@
 // ignore_for_file: unnecessary_const
 
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_camera/api/gemini.dart';
 import 'package:flutter_camera/model/inventory_item.dart';
@@ -15,14 +17,22 @@ class InventoryWidget extends ConsumerStatefulWidget {
 
 class InventoryWidgetState extends ConsumerState<InventoryWidget> {
   final TextEditingController _textController = TextEditingController();
-  List<InventoryItem> filteredDescriptions = [];
+  SplayTreeSet<InventoryItem> uniqueFilteredItems = SplayTreeSet<InventoryItem>(
+    (b, a) => a.itemId.compareTo(b.itemId),
+  );
+
+  bool isLoading = false;
+
   String convo = "";
 
   void _onSendPressed(List<InventoryItem> items) {
+    setState(() {
+      isLoading = true;
+    });
     // Handle send button press
     print("Send button pressed with text: ${_textController.text}");
     askGeminiInventory(_textController.text, items);
-    _textController.clear();
+    //_textController.clear();
   }
 
   void askGeminiInventory(String userQ, List<InventoryItem> items) async {
@@ -38,14 +48,24 @@ class InventoryWidgetState extends ConsumerState<InventoryWidget> {
     }
 
     String prompt =
-        "QUERY: $userQ. Answer the query from this list of item descriptions. Return a list of the most relevant descriptions verbatim, in the format ITEMS: \nDESCRIPTION_1\nDESCRIPTION_2\n\n If there are no relevant matches, say \"none\". If you need to say anything else, say it before listing items. Item decscriptions: \n${descriptions.toString()}";
+        "QUERY: $userQ. Answer the query from this list of item descriptions. Return the most relevant descriptions verbatim, in the format ITEMS: \nDESCRIPTION_1\nDESCRIPTION_2\n\n If there are no relevant matches, say \"none\". Even slightly relevant is ok, think more about practical application than keywords. If you need to say anything else, say it before listing items. Item decscriptions: \n${descriptions.toString()}";
 
-    final response = await askGemini(prompt);
+    final response = await askGemini(prompt, modelName: GEMINI_MODEL_FLASH);
+    print('gemini response $response');
+
+    if (normalizeDescription(response) == 'none' ||
+        normalizeDescription(response.replaceFirst('ITEMS:', '')) == 'none') {
+      setState(() {
+        convo = "No results";
+        isLoading = false;
+      });
+    }
 
     String descList = "";
 
     if (response.contains("ITEMS:")) {
       final parts = response.split("ITEMS:");
+      print('items split len ${parts.length} first part ${parts[0]}');
       if (parts.length > 1) {
         convo = parts[0];
         descList = parts[1];
@@ -53,22 +73,39 @@ class InventoryWidgetState extends ConsumerState<InventoryWidget> {
         descList = parts[0];
       }
 
+      print('desc list $descList');
+      List<InventoryItem> filteredItems = [];
+
       for (final desc in descList.split("\n")) {
-        final normDesc = desc.toLowerCase().replaceAll(' ', '');
+        final normDesc = desc.toLowerCase().trim().replaceAll(' ', '');
+        print('norm desc $normDesc');
         for (final item in items) {
-          if (item.aiDesc.toLowerCase().replaceAll(' ', '') == normDesc) {
-            filteredDescriptions.add(item);
-          } else if (item.aiDesc.toLowerCase().replaceAll(' ', '') == normDesc) {
-            filteredDescriptions.add(item);
+          if (item.aiDesc.isNotEmpty &&
+              normalizeDescription(item.aiDesc) == normDesc) {
+            print('matched ai desc');
+            filteredItems.add(item);
+          } else if (item.humanDesc.isNotEmpty &&
+              normalizeDescription(item.humanDesc) == normDesc) {
+            print('matched human desc');
+
+            filteredItems.add(item);
           }
         }
+
+        uniqueFilteredItems.clear();
+        uniqueFilteredItems.addAll(filteredItems);
       }
 
       setState(() {
+        isLoading = false;
       });
     }
 
     print("--Gemini response--\n $response \n--end---");
+  }
+
+  String normalizeDescription(String desc) {
+    return desc.toLowerCase().trim().replaceAll(' ', '');
   }
 
   @override
@@ -85,84 +122,103 @@ class InventoryWidgetState extends ConsumerState<InventoryWidget> {
           } else if (!snapshot.hasData) {
             return const Center(child: Text('No data'));
           } else {
-            var items = snapshot.data!;
+            var allItems = snapshot.data!;
+            var items = allItems;
 
-            if (!filteredDescriptions.isEmpty) {
-              items = filteredDescriptions;
+            if (!uniqueFilteredItems.isEmpty) {
+              print('filtered items size ${uniqueFilteredItems.length}');
+              items = uniqueFilteredItems.toList();
             }
 
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _textController,
-                          decoration: const InputDecoration(
-                            hintText: 'Enter text',
+            return Center(
+              child: isLoading
+                  ? Text(
+                      "Searching...",
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    )
+                  : SizedBox(
+                      width: 500,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _textController,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter text',
+                                    ),
+                                    style:
+                                        Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _onSendPressed(allItems);
+                                  },
+                                  child: const Text('Send'),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                          Text(convo),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final item = items[index];
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 8),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          item.date,
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          item.location,
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),                                      
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Image.network(item.image),
+                                      ),
+                                      //Text(item.image),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0),
+                                        child: Text(
+                                          item.aiDesc,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          _onSendPressed(items);
-                        },
-                        child: const Text('Send'),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                item.date,
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text(
-                                item.aiDesc,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text(
-                                item.image,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                            Text(item.location),
-                            Text(item.itemId),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Image.network(item.image),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+                    ),
             );
           }
         });

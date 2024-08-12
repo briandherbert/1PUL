@@ -1,5 +1,6 @@
 // flutter pub run build_runner watch
 
+import 'package:flutter_camera/api/gemini.dart';
 import 'package:flutter_camera/api/gsheets_inventory.dart';
 import 'package:flutter_camera/model/inventory_item.dart';
 import 'package:flutter_camera/model/photo_item.dart';
@@ -9,11 +10,8 @@ part 'inventory_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 class GeminiModel extends _$GeminiModel {
-  final GEMINI_PRO_EXP = 'gemini-1.5-pro-exp-0801';
-  final GEMINI_FLASH = 'gemini-1.5-flash';
-
   @override
-  String build() => GEMINI_FLASH;
+  String build() => GEMINI_MODEL_PRO_EXP;
 }
 
 @Riverpod(keepAlive: true)

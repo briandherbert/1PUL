@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_camera/model/photo_item.dart';
 import 'package:flutter_camera/ui/inventory_widget.dart';
 
-const FRAME_INTERVAL_MS = 600;
+const FRAME_INTERVAL_MS = 800;
 const REZ = ResolutionPreset.low;
 
 const THEME_COLOR = Color.fromARGB(255, 192, 160, 247);

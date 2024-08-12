@@ -49,6 +49,8 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
 
   bool _isProcessing = false;
 
+  bool _ditchedLast = false;
+
   @override
   List<PhotoItem> build() {
     return _processedPhotos;
@@ -56,6 +58,12 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
 
   void addRawPhoto(Uint8List rawPhoto, String location) {
     print("Provider: Add raw photo, queue size ${_rawPhotoQueue.length}");
+    // If queue is to big, throw away some frames
+    if (_rawPhotoQueue.length > 4 && !_ditchedLast) {
+      _rawPhotoQueue.removeLast();
+      _ditchedLast = true;
+    }
+
     final photoItem = PhotoItem(rawPhoto, location);
 
     _rawPhotoQueue.add(photoItem);
@@ -131,7 +139,7 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
         var geminiDesc = '';
 
         try {
-          geminiDesc = await describeHeldObject(jpegBytes);
+          geminiDesc = await describeHeldObject(jpegBytes, modelName: ref.read(geminiModelProvider));
         } catch (e) {
           print('error $e');
         }

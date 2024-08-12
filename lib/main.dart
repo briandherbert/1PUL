@@ -46,7 +46,7 @@ class MainApp extends StatelessWidget {
           ),
         ),
         //home: getCoolScaffold(InventoryWidget()));
-        home: getCoolScaffold(InventoryWidget()));
+        home: getCoolScaffold(MonitorWidget()));
   }
 }
 
