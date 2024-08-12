@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_camera/globals.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image/image.dart' as img;
@@ -41,10 +42,8 @@ Future<String> sendGeminiImage(Uint8List imageBytes,
 
 Future<String> describeHeldObject(Uint8List jpegBytes,
     {String? modelName}) async {
-  const prompt =
-      "You are a robot image analyzer for inventory management. If there is clearly someone holding or carrying an object, and the object is visible enough to describe, describe the object (and only the object), otherwise, output NONE. If the object appears blurry or obstructed, output BLUR.";
   final result =
-      await sendGeminiImage(jpegBytes, prompt: prompt, modelName: modelName);
+      await sendGeminiImage(jpegBytes, prompt: PROMPT_HELD_OBJECT, modelName: modelName);
   print("${DateTime.now()} Gemini response $result");
 
   return result;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_camera/globals.dart';
 import 'package:flutter_camera/ui/hls_viewer.dart';
+import 'package:flutter_camera/ui/inventory_widget.dart';
 import 'package:flutter_camera/ui/monitor_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,7 +24,15 @@ class LandingWidget extends ConsumerWidget {
             width: 400,
             height: btnHeight,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => getCoolScaffold(
+                        const InventoryWidget()), // Assuming MonitorWidget does not include a Scaffold
+                  ),
+                );
+              },
               child: const Text('Inventory'),
             ),
           ),
@@ -50,7 +59,7 @@ class LandingWidget extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Security Cam HLS'),
+                const Text('Security Cam HLSLL'),
                 Row(
                   children: [
                     Expanded(
@@ -75,7 +84,7 @@ class LandingWidget extends ConsumerWidget {
                           ),
                         ));
                       },
-                      child: const Text('Send'),
+                      child: const Text('Go'),
                     ),
                   ],
                 ),

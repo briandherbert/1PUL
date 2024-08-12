@@ -78,7 +78,7 @@ class _HLSVideoWidgetState extends MonitorWidgetState<HLSVideoWidget> {
     _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) async {
       final captureStatus = ref.read(cameraFeedStateProvider);
       if (captureStatus == CameraFeedStatus.CAPTURE) {
-        print('got new image');
+        //print('got new image');
         _captureFrame();
       }
     });

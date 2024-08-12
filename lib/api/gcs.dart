@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter_camera/globals.dart';
 import 'package:flutter_camera/model/photo_item.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +29,7 @@ class GCSUploader {
       await uploadImage(await photoItem.getJpegBytes(), filename: filename);
     });
 
-    return 'https://storage.googleapis.com/organizer_photos/$filename';
+    return '${getGCSPrefix()}$filename';
   }
 
   static Future<String?> uploadImage(Uint8List? bytes, {String? filename}) async {
@@ -54,7 +55,7 @@ class GCSUploader {
     try {
       await storageApi.objects.insert(object, bucketName, uploadMedia: media);
       print('Upload successful.');
-      return 'https://storage.googleapis.com/organizer_photos/$filename';
+      return '${getGCSPrefix()}$filename';
     } catch (e) {
       print('Failed to upload: $e');
     } finally {

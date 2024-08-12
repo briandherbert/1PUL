@@ -19,7 +19,9 @@ class InventoryItem {
     required this.image,
     required this.quantity,
   }) {
-    this.image = getGcsImageUrl(inventoryItemId: itemId)!;
+    if (this.image.isEmpty) {
+      this.image = getGcsImageUrl(inventoryItemId: itemId)!;
+    }
   }
 
   Map<String, dynamic> toMap() {

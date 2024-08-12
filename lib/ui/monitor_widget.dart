@@ -15,7 +15,8 @@ class MonitorWidget extends ConsumerStatefulWidget {
   MonitorWidgetState createState() => MonitorWidgetState();
 }
 
-class MonitorWidgetState<T extends ConsumerStatefulWidget> extends ConsumerState<T> {
+class MonitorWidgetState<T extends ConsumerStatefulWidget>
+    extends ConsumerState<T> {
   PhotoItem? _item;
 
   bool _isMicrophoneGranted = false;
@@ -65,9 +66,14 @@ class MonitorWidgetState<T extends ConsumerStatefulWidget> extends ConsumerState
             .read(cameraFeedStateProvider.notifier)
             .setStatus(CameraFeedStatus.PAUSE);
 
-        showPhotoItemDialog(context, _item!, timeoutSec: isListening ? 20 : 4);
-        _item!.gcsUrl = GCSUploader.uploadImageEventually(_item!);
-        ref.read(inventorySheetProvider.notifier).addItem(_item!);
+        showPhotoItemDialog(context, _item!, timeoutSec: isListening ? 20 : 5);
+
+        // Wait to get transcript?
+        if (!isListening) {
+          print("GOT ITEM no transcript");
+          _item!.gcsUrl = GCSUploader.uploadImageEventually(_item!);
+          ref.read(inventorySheetProvider.notifier).addItem(_item!);
+        }
       });
     }
 

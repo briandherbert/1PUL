@@ -42,7 +42,7 @@ class InventoryItemDetected extends _$InventoryItemDetected {
     print("${DateTime.now()} item provider got photo ${photoItem.geminiDesc}");
     items = [photoItem, ...items];
 
-    if (items.length == 1) {
+    if (items.length >= 1) {
       state = items.removeLast();
       print('${DateTime.now()} set state inventory provider');
 

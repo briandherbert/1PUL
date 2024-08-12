@@ -4,6 +4,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_camera/api/gemini.dart';
+import 'package:flutter_camera/globals.dart';
 import 'package:flutter_camera/model/inventory_item.dart';
 import 'package:flutter_camera/providers/inventory_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +49,7 @@ class InventoryWidgetState extends ConsumerState<InventoryWidget> {
     }
 
     String prompt =
-        "QUERY: $userQ. Answer the query from this list of item descriptions. Return the most relevant descriptions verbatim, in the format ITEMS: \nDESCRIPTION_1\nDESCRIPTION_2\n\n If there are no relevant matches, say \"none\". Even slightly relevant is ok, think more about practical application than keywords. If you need to say anything else, say it before listing items. Item decscriptions: \n${descriptions.toString()}";
+        "QUERY: $userQ. $PROMPT_INVENTORY_SEARCH${descriptions.toString()}";
 
     final response = await askGemini(prompt, modelName: GEMINI_MODEL_FLASH);
     print('gemini response $response');
@@ -159,7 +160,7 @@ class InventoryWidgetState extends ConsumerState<InventoryWidget> {
                                   onPressed: () {
                                     _onSendPressed(allItems);
                                   },
-                                  child: const Text('Send'),
+                                  child: const Text('Search'),
                                 ),
                               ],
                             ),

@@ -64,7 +64,7 @@ class RawPhotoProcessor extends _$RawPhotoProcessor {
       _ditchedLast = true;
     }
 
-    final photoItem = PhotoItem(rawPhoto, location);
+    final photoItem = PhotoItem(rawPhoto, location, wantsHumanDesc: ref.read(audioDescriptionProvider));
 
     _rawPhotoQueue.add(photoItem);
     _processNextPhoto();

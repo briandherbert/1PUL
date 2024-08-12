@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_camera/globals.dart';
-import 'package:flutter_camera/ui/audio_record_widget.dart';
 //import 'package:flutter_camera/ui/camera_widget.dart';
 import 'package:flutter_camera/ui/camera_widget.dart';
 import 'package:flutter_camera/ui/inventory_widget.dart';
@@ -46,7 +45,7 @@ class MainApp extends StatelessWidget {
           ),
         ),
         //home: getCoolScaffold(InventoryWidget()));
-        home: getCoolScaffold(MonitorWidget()));
+        home: getCoolScaffold(LandingWidget()));
   }
 }
 

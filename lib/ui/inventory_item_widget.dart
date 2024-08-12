@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_camera/api/gcs.dart';
 import 'package:flutter_camera/model/photo_item.dart';
 import 'package:flutter_camera/providers/inventory_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,6 +69,16 @@ class InventoryItemWidgetState extends ConsumerState<InventoryItemWidget> {
           if (mounted) {
             setState(() {
               _transcription = result;
+
+              Future.microtask(() async {
+                print('GOT ITEM upload w transcript');
+                widget.photoItem.humanDesc = _transcription;
+                widget.photoItem.gcsUrl =
+                    GCSUploader.uploadImageEventually(widget.photoItem);
+                ref
+                    .read(inventorySheetProvider.notifier)
+                    .addItem(widget.photoItem);
+              });
             });
           }
         });

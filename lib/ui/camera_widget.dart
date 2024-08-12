@@ -54,7 +54,7 @@ class CameraWidgetState extends ConsumerState<CameraWidget> {
         (timer) async {
       final captureStatus = ref.read(cameraFeedStateProvider);
       if (captureStatus == CameraFeedStatus.CAPTURE) {
-        print('got new image');
+        //print('got new image');
         final bytes = await _captureImage(_camerController!);
 
         if (bytes != null) {

@@ -17,11 +17,13 @@ class PhotoItem {
   final DateTime timestamp;  // New field for timestamp
 
   PhotoState photoState = PhotoState.BASELINE;
+  bool wantsHumanDesc = false;
 
   PhotoItem(
     this.capturedBytes, 
     this.location, {
     this.photoState = PhotoState.BASELINE,
+    this.wantsHumanDesc = false
   }) : 
     timestamp = DateTime.now();
 
