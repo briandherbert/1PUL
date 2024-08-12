@@ -32,7 +32,13 @@ SERVICE_ACCT_CREDS = "^^ that google service account converted to base64 string,
 
 
 ### 5. Run it!
-Launch 1PUL on Chrome. If you want to run it on other devices on your network, `flutter build web` and serve the folder. One option:
+Launch 1PUL on Chrome. 
+
+- Click the 'Monitor' button.
+- Once you see the video feed, click it to change state from Paused to Monitoring, indicated at bottom left.
+- Choose a location at the top. This reads from the google sheet.
+
+If you want to run it on other devices on your network, `flutter build web` and serve the folder. One option:
 1. flutter build web
 2. npm install -g http-server
 3. cd build/web
